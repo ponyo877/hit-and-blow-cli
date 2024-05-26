@@ -22,6 +22,7 @@ import (
 )
 
 var (
+	wsScheme          string
 	matchmakingOrigin string
 	signalingOrigin   string
 )
@@ -39,8 +40,8 @@ type mmResMsg struct {
 }
 
 func main() {
-	mmURL := url.URL{Scheme: "ws", Host: matchmakingOrigin, Path: "/matchmaking"}
-	signalingURL := url.URL{Scheme: "ws", Host: signalingOrigin, Path: "/signaling"}
+	mmURL := url.URL{Scheme: wsScheme, Host: matchmakingOrigin, Path: "/matchmaking"}
+	signalingURL := url.URL{Scheme: wsScheme, Host: signalingOrigin, Path: "/signaling"}
 
 	now := time.Now()
 	userID, _ := shortHash(now)
