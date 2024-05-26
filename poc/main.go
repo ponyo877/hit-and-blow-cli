@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"log"
 	"net/url"
+	"os"
 	"syscall/js"
 	"time"
 
@@ -18,6 +19,11 @@ import (
 
 	"nhooyr.io/websocket" // wasm対応
 	"nhooyr.io/websocket/wsjson"
+)
+
+var (
+	matchmakingOrigin string
+	signalingOrigin   string
 )
 
 type mmReqMsg struct {
@@ -33,9 +39,7 @@ type mmResMsg struct {
 }
 
 func main() {
-	mmOrigin := "localhost:8000"
-	signalingOrigin := "localhost:3000"
-	mmURL := url.URL{Scheme: "ws", Host: mmOrigin, Path: "/"}
+	mmURL := url.URL{Scheme: "ws", Host: matchmakingOrigin, Path: "/matchmaking"}
 	signalingURL := url.URL{Scheme: "ws", Host: signalingOrigin, Path: "/signaling"}
 
 	now := time.Now()
@@ -174,4 +178,11 @@ func handleError() {
 
 func getElementByID(id string) js.Value {
 	return js.Global().Get("document").Call("getElementById", id)
+}
+
+func getEnv(key, fallback string) string {
+	if value, ok := os.LookupEnv(key); ok {
+		return value
+	}
+	return fallback
 }
