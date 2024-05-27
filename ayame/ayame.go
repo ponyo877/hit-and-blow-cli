@@ -5,6 +5,12 @@ import (
 	"github.com/pion/webrtc/v3"
 )
 
+var (
+	turnHost string
+	turnUser string
+	turnPass string
+)
+
 // DefaultOptions は Ayame 接続オプションのデフォルト値を生成して返します。
 func DefaultOptions() *ConnectionOptions {
 	return &ConnectionOptions{
@@ -30,7 +36,15 @@ func DefaultOptions() *ConnectionOptions {
 		// 	},
 		// },
 		ICEServers: []webrtc.ICEServer{
-			{URLs: []string{"stun:stun.l.google.com:19302"}},
+			{
+				URLs:           []string{"turn:" + turnHost},
+				Username:       turnUser,
+				Credential:     turnPass,
+				CredentialType: webrtc.ICECredentialTypePassword,
+			},
+			{
+				URLs: []string{"stun:stun.l.google.com:19302"},
+			},
 		},
 		ClientID:     getULID(),
 		UseTrickeICE: true,
