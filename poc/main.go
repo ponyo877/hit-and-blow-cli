@@ -10,14 +10,13 @@ import (
 	"fmt"
 	"log"
 	"net/url"
-	"os"
 	"syscall/js"
 	"time"
 
 	"github.com/pion/webrtc/v3"
 	"github.com/ponyo877/hit-and-blow-cli/ayame"
 
-	"nhooyr.io/websocket" // wasm対応
+	"nhooyr.io/websocket"
 	"nhooyr.io/websocket/wsjson"
 )
 
@@ -84,26 +83,21 @@ func main() {
 			}
 			ws.Close(websocket.StatusNormalClosure, "close connection")
 			if resMsg.Type == "MATCH" {
-				logElem("[Sys]: Matching! Start P2P chat not via server\n")
-				conn = ayame.NewConnection(signalingURL.String(), resMsg.RoomID, ayame.DefaultOptions(), true, false)
-
+				conn = ayame.NewConnection(signalingURL.String(), resMsg.RoomID, ayame.DefaultOptions(), false, false)
 				conn.OnOpen(func(metadata *interface{}) {
 					log.Println("Open")
 					var err error
-					dc, err = conn.CreateDataChannel("match-making-example", nil)
+					dc, err = conn.CreateDataChannel("matchmaking-example", nil)
 					if err != nil && err != fmt.Errorf("client does not exist") {
 						log.Printf("CreateDataChannel error: %v", err)
 						return
 					}
-					dc.OnClose(func() {
-						logElem("DataChannel closed\n")
-					})
 					log.Printf("CreateDataChannel: label=%s", dc.Label())
 					dc.OnMessage(onMessage())
 				})
 
 				conn.OnConnect(func() {
-					log.Println("Connected")
+					logElem("[Sys]: Matching! Start P2P chat not via server\n")
 					conn.CloseWebSocketConnection()
 					connected <- true
 				})
@@ -113,9 +107,6 @@ func main() {
 					if dc == nil {
 						dc = c
 					}
-					dc.OnClose(func() {
-						logElem("DataChannel closed\n")
-					})
 					dc.OnMessage(onMessage())
 				})
 
@@ -146,6 +137,7 @@ func main() {
 				return
 			}
 			logElem(fmt.Sprintf("[You]: %s\n", message))
+			el.Set("value", "")
 		}()
 		return js.Undefined()
 	}))
@@ -174,16 +166,9 @@ func logElem(msg string) {
 }
 
 func handleError() {
-	logElem("[Sys]: Any left, Please restart\n")
+	logElem("[Sys]: Maybe Any left, Please restart\n")
 }
 
 func getElementByID(id string) js.Value {
 	return js.Global().Get("document").Call("getElementById", id)
-}
-
-func getEnv(key, fallback string) string {
-	if value, ok := os.LookupEnv(key); ok {
-		return value
-	}
-	return fallback
 }
